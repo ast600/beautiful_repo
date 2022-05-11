@@ -1,4 +1,5 @@
 import scrapy
+from scrapy.exceptions import CloseSpider
 from scrapy.linkextractors import LinkExtractor
 from scrapy.spiders import CrawlSpider, Rule
 from scrapy_splash import SplashRequest
@@ -14,12 +15,13 @@ class FragrantSpider(CrawlSpider):
         function main(splash, args)
             splash:go(args.url)
             splash:wait(1)
-        repeat
-            splash:runjs("$('div#NewPage > a').click();")
-            splash:wait(3)
-            local len = splash:evaljs('document.querySelectorAll("div#NewPage").length;')
-        until (len==0)  
-        return splash:html()
+            repeat
+                splash:runjs("$('div#NewPage > a').click();")
+                splash:wait(3)
+                local len = splash:evaljs('document.querySelectorAll("div#NewPage").length;')
+            until (len==0)
+            local items=splash:evaljs("filter.GetModel().totalItems;")  
+        return {items=items, html=splash:html()}
         end
         '''
 
@@ -35,8 +37,13 @@ class FragrantSpider(CrawlSpider):
                                                                                                  'timeout': 400})
 
     def splash_parse(self, response):
-        for link in self.link_ex.extract_links(response):
-            yield scrapy.Request(link.url, callback=self.parse_item)
+        if response.data['items'] == len(self.link_ex.extract_links(response)):
+            self.logger.info(f"All {len(self.link_ex.extract_links(response))} items are selected! Let's cROLL!")
+            for link in self.link_ex.extract_links(response):
+                yield scrapy.Request(link.url, callback=self.parse_item)
+        else:
+            raise CloseSpider(reason=
+                              f'Not all items are selected (Only {len(self.link_ex.extract_links(response))} out of {response.data["items"]}).')
 
     def parse_item(self, response):
         prices = []
