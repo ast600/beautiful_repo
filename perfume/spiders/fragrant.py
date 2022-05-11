@@ -1,8 +1,12 @@
+import numpy as np
 import scrapy
+from scrapy.shell import inspect_response
 from scrapy.exceptions import CloseSpider
 from scrapy.linkextractors import LinkExtractor
 from scrapy.spiders import CrawlSpider, Rule
+from scrapy.loader import ItemLoader
 from scrapy_splash import SplashRequest
+from perfume.items import PerfumeItem
 
 
 class FragrantSpider(CrawlSpider):
@@ -46,26 +50,10 @@ class FragrantSpider(CrawlSpider):
                               f'Not all items are selected (Only {len(self.link_ex.extract_links(response))} out of {response.data["items"]}).')
 
     def parse_item(self, response):
-        prices = []
-        volumes = []
-        eans = []
-
-        for element in response.xpath('//div[@class="contPrecioNuevo"]/text()').getall():
-            clean_element = element.strip().replace('\u20ac', '').strip().replace(',', '.')
-            prices.append(float(clean_element))
-
-        for vol in response.xpath('//div[@class="font-16 font-w-700 tM1"]/text()').getall():
-            clean_vol = vol.strip()
-            volumes.append(clean_vol)
-
-        if response.xpath('//dt[contains(., "EAN")]/following-sibling::dd/text()').get() is None:
-            eans.append(None)
-        else:
-            eans = response.xpath('//dt[contains(., "EAN")]/following-sibling::dd/text()').get().strip().split(' / ')
-
-        item = {}
-        item['Title'] = response.xpath('//h1/span/text()').get()
-        item['Price (EU)'] = prices
-        item['Volume'] = volumes
-        item['EAN'] = eans
-        return item
+        loader = ItemLoader(item=PerfumeItem(), response=response)
+        loader.add_xpath('brand', '//h1/a/text()')
+        loader.add_xpath('name', '//h1/span/text()')
+        loader.add_xpath('volume', '//div[@class="font-16 font-w-700 tM1"]/text()')
+        loader.add_xpath('price_eu', '//div[@class="col-12"]//div[@class="contPrecioNuevo"]/text()')
+        loader.add_xpath('ean', '//dt[contains(., "EAN")]/following-sibling::dd/text()')
+        return loader.load_item()

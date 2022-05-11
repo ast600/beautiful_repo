@@ -1,12 +1,13 @@
-# Define here the models for your scraped items
-#
-# See documentation in:
-# https://docs.scrapy.org/en/latest/topics/items.html
-
 import scrapy
+from itemloaders.processors import MapCompose, Identity
+
+def digits_only(val):
+    return float(val.strip().replace('\u20ac', '').strip().replace(',', '.'))
 
 
 class PerfumeItem(scrapy.Item):
-    # define the fields for your item here like:
-    # name = scrapy.Field()
-    pass
+    brand = scrapy.Field(input_processor=MapCompose(str.strip), output_processor=Identity())
+    name = scrapy.Field(input_processor=MapCompose(str.strip), output_processor=Identity())
+    volume = scrapy.Field(input_processor=MapCompose(str.strip), output_processor=Identity())
+    price_eu = scrapy.Field(input_processor=MapCompose(digits_only), output_processor=Identity())
+    ean = scrapy.Field(input_processor=MapCompose(str.strip), output_processor=Identity())
