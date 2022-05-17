@@ -35,7 +35,7 @@ class FragrantSpider(CrawlSpider):
     '''
 
     le_start = LinkExtractor(restrict_xpaths=
-                             '//div[@class="new-menu-level-2 col-12 toolbarBelleza"]//div[@class="mainLink"][1]/a')
+                             '//div[@class="new-menu-level-2 col-12 toolbarBelleza"]//div[@class="mainLink"]/a')
 
     rule_start = Rule(le_start, callback='splash_scroll', follow=False)
 
