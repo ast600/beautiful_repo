@@ -4,14 +4,18 @@ import scrapy
 from itemloaders.processors import MapCompose, Identity
 
 
+def split_ean(myString):
+    newList = myString.replace(' ','').replace('\n', '').split('/')
+    nan_list = [*[np.nan if x=='...' else x for x in newList]]
+    return nan_list
+
+
 def clean_ean(stin):
-    if type(stin)=='string':
+    if isinstance(stin, str):
         if len(stin)==13 and bool(re.match(r"[0-9]+", stin))==True:
             return stin
         else:
-            my_list = stin.split(' /')
-            my_list=[*[s.strip() for s in my_list]]
-            return my_list
+            return split_ean(stin)
     else:
         return stin
 

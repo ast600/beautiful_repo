@@ -1,4 +1,5 @@
 import scrapy
+from scrapy.shell import inspect_response
 from scrapy.exceptions import CloseSpider
 from scrapy.linkextractors import LinkExtractor
 from scrapy.spiders import CrawlSpider, Rule
@@ -56,6 +57,7 @@ class FragrantSpider(CrawlSpider):
                               f'Not all items are selected (Only {len(self.link_ex.extract_links(response))} out of {response.data["items"]}).')
 
     def parse_item(self, response):
+        inspect_response(response, self)
         perf_item = PerfumeItem()
         loader = ItemLoader(item=perf_item, response=response)
         for key in response.data['dic'].keys():
