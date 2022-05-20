@@ -15,3 +15,4 @@ DUPEFILTER_CLASS = 'scrapy_splash.SplashAwareDupeFilter'
 HTTPCACHE_STORAGE = 'scrapy_splash.SplashAwareFSCacheStorage'
 ITEM_PIPELINES = {
     'perfume.pipelines.FragrantPipeline': 800}
+TELNETCONSOLE_PORT = [5000, 65000]
