@@ -16,3 +16,4 @@ HTTPCACHE_STORAGE = 'scrapy_splash.SplashAwareFSCacheStorage'
 ITEM_PIPELINES = {
     'perfume.pipelines.FragrantPipeline': 800}
 TELNETCONSOLE_PORT = [5000, 65000]
+RETRY_HTTP_CODES = [500, 502, 503, 504, 522, 524, 408, 400]

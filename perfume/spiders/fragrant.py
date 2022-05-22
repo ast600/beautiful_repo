@@ -1,5 +1,4 @@
 import scrapy
-from scrapy.shell import inspect_response
 from scrapy.exceptions import CloseSpider
 from scrapy.linkextractors import LinkExtractor
 from scrapy.spiders import CrawlSpider, Rule
@@ -15,18 +14,18 @@ class FragrantSpider(CrawlSpider):
     link_ex = LinkExtractor(restrict_xpaths=
                                '//div[@id="ajaxPage"]/div/div[@class="pInfo"]/div[@class="contpInfo"]/a[2]')
     lua_scroll = '''
-        function main(splash, args)
-            splash:go(args.url)
-            splash:wait(1)
-            repeat
-                splash:runjs("$('div#NewPage > a').click();")
-                splash:wait(3)
-                local len = splash:evaljs('document.querySelectorAll("div#NewPage").length;')
-            until (len==0)
-            local items=splash:evaljs("filter.GetModel().totalItems;")
-        return {items=items, html=splash:html()}
-        end
-        '''
+    function main(splash, args)
+        splash:go(args.url)
+        splash:wait(4)
+        local total=splash:evaljs("filter.GetModel().totalItems;")
+        local perPage=splash:evaljs("filter.GetModel().itemsPorPagina;")
+  		local items=splash:evaljs("filter.GetModel().totalItems;")
+  		local pages = math.ceil(total/perPage)
+        splash:runjs(string.format("window.location.search=\'pagina=%d\';", pages))
+        splash:wait(80)
+    return {items=items, html=splash:html()}
+    end
+    '''
     lua_item = '''
     function main(splash, args)
         splash:go(args.url)
@@ -57,7 +56,6 @@ class FragrantSpider(CrawlSpider):
                               f'Not all items are selected (Only {len(self.link_ex.extract_links(response))} out of {response.data["items"]}).')
 
     def parse_item(self, response):
-        inspect_response(response, self)
         perf_item = PerfumeItem()
         loader = ItemLoader(item=perf_item, response=response)
         for key in response.data['dic'].keys():
