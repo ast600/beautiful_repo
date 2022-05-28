@@ -9,8 +9,8 @@ from perfume.items import PerfumeItem
 
 class FragrantSpider(CrawlSpider):
     name = 'fragrant'
-    allowed_domains = ['perfumesclub.com']
-    start_urls = ['https://www.perfumesclub.com/']
+    allowed_domains = ['perfumesclub.pt']
+    start_urls = ['https://www.perfumesclub.pt/']
     link_ex = LinkExtractor(restrict_xpaths=
                                '//div[@id="ajaxPage"]/div/div[@class="pInfo"]/div[@class="contpInfo"]/a[2]')
     lua_scroll = '''

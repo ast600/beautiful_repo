@@ -20,8 +20,16 @@ def clean_ean(stin):
         return stin
 
 
+def clean_tags(string):
+    if bool(re.search('<.*?>', string))==True:
+        clean_str=re.sub('<.*?>', '', string)
+        return clean_str
+    else:
+        return string
+
+
 class PerfumeItem(scrapy.Item):
     brand = scrapy.Field()
-    name_var = scrapy.Field()
+    name_var = scrapy.Field(input_processor=MapCompose(clean_tags), output_processor=Identity())
     price_eu = scrapy.Field(input_processor=MapCompose(float), output_processor=Identity())
     ean = scrapy.Field(input_processor=MapCompose(clean_ean), output_processor=Identity())
