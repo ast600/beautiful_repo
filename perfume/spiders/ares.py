@@ -1,5 +1,4 @@
 import scrapy
-import numpy as np
 import requests
 from scrapy.linkextractors import LinkExtractor
 from scrapy.spiders import CrawlSpider, Rule
@@ -16,6 +15,8 @@ class AresSpider(CrawlSpider):
     le_next_page = LinkExtractor(restrict_css='a#pagination-next-page')
     sesh = requests.Session()
     js_script = '''
+    let spfVar=document.querySelectorAll('div#tab-1').length>0 ? (/spf/i.test(document.querySelectorAll('div#tab-1')[0].innerText) || /spf/i.test(productObj.name)) : (/spf/i.test(productObj.name)==false ? "N/A" : true);
+    let lilVar=document.querySelectorAll('div#tab-1').length>0 ? /lilial|butylphenyl methylpropional/i.test(document.querySelectorAll('div#tab-1')[0].innerText) : "N/A";
     let rocketArr=[];
     if (document.querySelectorAll('div.contenedor-variedad').length>0)
         {for (let i=0; i<document.querySelectorAll('div.contenedor-variedad').length; i++)
@@ -25,10 +26,10 @@ class AresSpider(CrawlSpider):
         {for (let j=0; j<document.querySelectorAll('button[class="c-addtocartaction__button js-add-to-cart"]').length; j++)
             {var string=document.querySelectorAll('button[class="c-addtocartaction__button js-add-to-cart"]')[j].attributes.onmousedown.value;
             var regex=/[0-9]+/g; var matchArr=string.match(regex); rocketArr.push(...matchArr);}};
-    let dict={"partnerId": rrPartnerId, "codeArr": rocketArr}; dict;
+    let dict={"spf": spfVar, "lilial": lilVar, "partnerId": rrPartnerId, "codeArr": rocketArr}; dict;
     '''
 
-    le_start = LinkExtractor(restrict_xpaths='//ul[@class="list"]/li[2]/div/a')
+    le_start = LinkExtractor(restrict_xpaths='//ul[@class="list"]/li/div/a')
     rule_start = Rule(le_start, callback='parse_page', follow=False)
     rules = (rule_start,)
 
@@ -42,30 +43,22 @@ class AresSpider(CrawlSpider):
 
     def send_to_api(self, response):
         base_url = 'https://api.retailrocket.net/api/1.0/partner/{0}/items/?itemsIds={1}'
-        if 'script' in response.data.keys():
-            if len(response.data['script']['codeArr'])==1:
-                r = self.sesh.get(base_url.format(response.data['script']['partnerId'], response.data['script']['codeArr'][0]))
-                r_json = r.json()
-                loader = ItemLoader(item=PerfumeItem(), resource=response)
-                loader.add_value('price_eu', r_json[0]['Price'])
-                loader.add_value('ean', r_json[0]['ItemId'])
-                loader.add_value('name_var', r_json[0]['Name'])
-                if r_json[0]['Vendor'] is None:
-                    loader.add_value('brand', np.nan)
-                else:
-                    loader.add_value('brand', r_json[0]['Vendor'])
-                yield loader.load_item()
-            elif len(response.data['script']['codeArr'])>1:
-                r = self.sesh.get(
-                    base_url.format(response.data['script']['partnerId'], ','.join(response.data['script']['codeArr'])))
-                r_json = r.json()
+        if 'script' not in response.data.keys(): pass
+        elif 'codeArr' in response.data['script'].keys() and len(response.data['script']['codeArr']) > 0:
+            code_arr = response.data['script']['codeArr']
+            api_code_str = ','.join(code_arr) if len(code_arr) > 1 else code_arr[0]
+            r = self.sesh.get(base_url.format(response.data['script']['partnerId'], api_code_str))
+            r_json = r.json()
+            for i in range(len(response.data['script']['codeArr'])):
                 loader = ItemLoader(item=PerfumeItem(), response=response)
-                for i in range(len(response.data['script']['codeArr'])):
-                    loader.add_value('price_eu', r_json[i]['Price'])
-                    loader.add_value('ean', r_json[i]['ItemId'])
+                loader.add_value('brand', r_json[i]['Vendor'])
+                if len(code_arr) > 1:
                     loader.add_value('name_var', r_json[i]['Name']+','+r_json[i]['Params']['Volume'])
-                    if r_json[i]['Vendor'] is None:
-                        loader.add_value('brand', np.nan)
-                    else:
-                        loader.add_value('brand', r_json[i]['Vendor'])
+                else:
+                    loader.add_value('name_var', r_json[i]['Name'])
+                loader.add_value('ean', r_json[i]['ItemId'])
+                loader.add_value('spf', response.data['script']['spf'])
+                loader.add_value('lilial', response.data['script']['lilial'])
+                loader.add_value('price_eu', r_json[i]['Price'])
+                loader.add_value('url', r_json[i]['Url'])
                 yield loader.load_item()

@@ -1,6 +1,3 @@
-import numpy as np
-import requests
-import lxml.html
 from scrapy.linkextractors import LinkExtractor
 from scrapy.spiders import CrawlSpider, Rule
 from scrapy.loader import ItemLoader
@@ -11,12 +8,21 @@ class IsabellaSpider(CrawlSpider):
     name = 'isabella'
     allowed_domains = ['isolee.com']
     start_urls = ['https://isolee.com/es/']
-    sesh = requests.Session()
-    script = """
-    var result;
+    script = """var result;
     jQuery.ajaxSetup({{async: false}});
-    jQuery.getJSON('{}', (data)=>{{result=data;}});
-    result;
+    jQuery.getJSON("{}", (data)=>{{result=data;}});
+    let copyAsArr=[];
+    while (copyAsArr.length<result.products.length) {{copyAsArr.push({{}})}};
+    for (let i=0; i<result.products.length; i++)
+    {{copyAsArr[i]['brand']=result.products[i].manufacturer_name; copyAsArr[i]['name_var']=result.products[i].name;
+    copyAsArr[i]['price_eu']=result.products[i].price_amount;
+    copyAsArr[i]['url']=result.products[i].url; jQuery.ajax({{async: false, url: result.products[i].url, success:
+        (data)=>{{let doc=new DOMParser().parseFromString(data, 'text/html'); let ajaxSel=doc.querySelectorAll("div[class='tab-pane fade']");
+        copyAsArr[i]['lilial']= ajaxSel.length>0 ? ((/lilial/i.test(result.products[i].name) && !/free/i.test(result.products[i].name)) || /lilial|butylphenyl methylpropional/i.test(JSON.parse(doc.querySelector("div[class='tab-pane fade']").getAttribute('data-product')).description)) : (/lilial free/i.test(result.products[i].name) ? false : "N/A");
+        copyAsArr[i]['spf']=/spf/i.test(result.products[i].name) || (doc.querySelectorAll("div[class='tab-pane fade']").length>0 ? /spf/i.test(JSON.parse(doc.querySelector("div[class='tab-pane fade']").getAttribute('data-product')).description) : false);
+        copyAsArr[i]['ean']=doc.querySelectorAll("span[itemprop='gtin']")[0].innerText!='' ? doc.querySelectorAll("span[itemprop='gtin']")[0].innerText : "Not found";}}}})}}
+    let fullArr={{pagination: result.pagination, productData: copyAsArr}};
+    fullArr;
     """
     le_cat = LinkExtractor(restrict_css='div.buttonnew > a')
 
@@ -29,26 +35,22 @@ class IsabellaSpider(CrawlSpider):
     def parse_cat_page(self, response):
         for link in self.le_cat.extract_links(response):
             yield SplashRequest(link.url, endpoint='render.json', callback=self.parse_page,
-                                args={'js_source': self.script.format(link.url), 'wait': 15, 'script': 1, 'timeout': 400, 'session_id': 'foo',
+                                args={'js_source': self.script.format(link.url), 'wait': 3, 'script': 1, 'timeout': 400, 'session_id': 'foo',
                                       'headers': {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.67 Safari/537.36'}})
 
     def parse_page(self, response):
         pagination_dict = response.data['script']['pagination']
-        loader = ItemLoader(item=PerfumeItem(), response=response)
-        for i in range(len(response.data['script']['products'])):
-            prod_dict = dict(response.data['script']['products'][i])
-            loader.add_value('brand', prod_dict['manufacturer_name'])
-            loader.add_value('name_var', prod_dict['name'])
-            loader.add_value('price_eu', prod_dict['price_amount'])
-            r = self.sesh.get(prod_dict['url'], headers={'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.67 Safari/537.36'})
-            parser = lxml.html.fromstring(r.content)
-            ean = parser.xpath('//div[@style="display:none;"]/span/text()')
-            if ean!=[]:
-                ean = str(ean[0])
-                loader.add_value('ean', ean)
-            else:
-                loader.add_value('ean', np.nan)
-        yield loader.load_item()
+        product_arr = response.data['script']['productData']
+        for i in range(len(product_arr)):
+            loader = ItemLoader(item=PerfumeItem(), response=response)
+            loader.add_value('brand', product_arr[i]['brand'])
+            loader.add_value('name_var', product_arr[i]['name_var'])
+            loader.add_value('ean', product_arr[i]['ean'])
+            loader.add_value('spf', product_arr[i]['spf'])
+            loader.add_value('lilial', product_arr[i]['lilial'])
+            loader.add_value('price_eu', product_arr[i]['price_eu'])
+            loader.add_value('url', product_arr[i]['url'])
+            yield loader.load_item()
         if pagination_dict['current_page'] < pagination_dict['pages_count']:
             if isinstance(pagination_dict['pages'], dict):
                 keys_list = list(pagination_dict['pages'].keys())
