@@ -1,9 +1,12 @@
+from dotenv import dotenv_values
+
 BOT_NAME = 'perfume'
 SPIDER_MODULES = ['perfume.spiders']
 NEWSPIDER_MODULE = 'perfume.spiders'
 ROBOTSTXT_OBEY = True
 SPLASH_URL = 'http://localhost:8050/'
 DOWNLOADER_MIDDLEWARES = {
+    'scrapy_zyte_smartproxy.ZyteSmartProxyMiddleware': 610,
     'scrapy_splash.SplashCookiesMiddleware': 723,
     'scrapy_splash.SplashMiddleware': 725,
     'scrapy.downloadermiddlewares.httpcompression.HttpCompressionMiddleware': 810,
@@ -17,4 +20,8 @@ ITEM_PIPELINES = {
     'perfume.pipelines.FragrantPipeline': 800}
 TELNETCONSOLE_PORT = [5000, 65000]
 RETRY_HTTP_CODES = [500, 502, 503, 504, 522, 524, 408, 400]
-HTTPCACHE_ENABLED = True
+HTTPCACHE_ENABLED = False
+COOKIES_ENABLED = False
+ZYTE_SMARTPROXY_ENABLED = False
+conf = dotenv_values()
+ZYTE_SMARTPROXY_APIKEY = conf['ZYTE_KEY']

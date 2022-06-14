@@ -1,3 +1,5 @@
 .env
 .scrapy
 __pycache__/
+*.exe
+*.toml
