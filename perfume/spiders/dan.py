@@ -1,5 +1,4 @@
 from scrapy.linkextractors import LinkExtractor
-from scrapy.shell import inspect_response
 from scrapy.spiders import CrawlSpider, Rule
 from scrapy_splash import SplashRequest
 from scrapy.loader import ItemLoader
