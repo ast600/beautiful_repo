@@ -1,8 +1,14 @@
+from dotenv import dotenv_values
+
+conf = dotenv_values()
+
 BOT_NAME = 'perfume'
 SPIDER_MODULES = ['perfume.spiders']
 NEWSPIDER_MODULE = 'perfume.spiders'
 ROBOTSTXT_OBEY = True
-SPLASH_URL = 'http://localhost:8050/'
+SPLASH_URL = conf['SPLASH_LINK']
+SPLASH_USER = conf['SPLASH_USR']
+SPLASH_PASS = conf['SPLASH_PASSWD']
 DOWNLOADER_MIDDLEWARES = {
     'scrapy_splash.SplashCookiesMiddleware': 723,
     'scrapy_splash.SplashMiddleware': 725,

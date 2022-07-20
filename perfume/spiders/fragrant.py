@@ -1,4 +1,3 @@
-from w3lib.http import basic_auth_header
 from scrapy.exceptions import CloseSpider
 from scrapy.linkextractors import LinkExtractor
 from scrapy.spiders import CrawlSpider, Rule
@@ -68,14 +67,14 @@ class FragrantSpider(CrawlSpider):
 
     def splash_scroll(self, response):
         return SplashRequest(response.url, callback=self.splash_parse, endpoint='execute',
-                             args={'lua_source': self.lua_scroll, 'timeout': 800}, splash_headers={'Authorization': basic_auth_header('admin', 'admin')})
+                             args={'lua_source': self.lua_scroll, 'timeout': 800})
 
     def splash_parse(self, response):
         if response.data['items'] == len(self.le_item.extract_links(response)):
             self.logger.info(f"All {len(self.le_item.extract_links(response))} items are selected! Let's cROLL!")
             for link in self.le_item.extract_links(response):
                 yield SplashRequest(link.url, callback=self.parse_item, endpoint='execute',
-                                    args={'lua_source': self.lua_item, 'timeout': 800}, splash_headers={'Authorization': basic_auth_header('admin', 'admin')})
+                                    args={'lua_source': self.lua_item, 'timeout': 800})
         else:
             raise CloseSpider(reason=
                               f'Not all items are selected (Only {len(self.le_item.extract_links(response))} out of {response.data["items"]}).')
