@@ -1,6 +1,7 @@
 .env
 .scrapy
 __pycache__/
-*.exe
-*.toml
 walle.py
+aquarium/
+scraping-venv/
+*.git
