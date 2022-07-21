@@ -1,6 +1,6 @@
 import re, scrapy, unidecode
 from scrapy.exceptions import DropItem
-from itemloaders.processors import MapCompose, TakeFirst
+from itemloaders.processors import MapCompose, TakeFirst, Identity
 
 
 def clean_tags(string):
@@ -19,13 +19,10 @@ def normalize_string(string):
 
 
 class PerfumeItem(scrapy.Item):
-
-    default_output_processor = TakeFirst()
-
-    brand = scrapy.Field(input_processor = MapCompose(normalize_string))
-    name_var = scrapy.Field(input_processor = MapCompose(clean_tags, normalize_string))
-    lilial = scrapy.Field()
-    spf = scrapy.Field()
-    price_eu = scrapy.Field(input_processor = MapCompose(float))
-    ean = scrapy.Field(input_processor = MapCompose(str))
-    url = scrapy.Field()
+    brand = scrapy.Field(input_processor = MapCompose(normalize_string), output_processor = TakeFirst())
+    name_var = scrapy.Field(input_processor = MapCompose(clean_tags, normalize_string), output_processor = TakeFirst())
+    lilial = scrapy.Field(input_processor=Identity(), output_processor = TakeFirst())
+    spf = scrapy.Field(input_processor=Identity(), output_processor = TakeFirst())
+    price_eu = scrapy.Field(input_processor = MapCompose(float), output_processor = TakeFirst())
+    ean = scrapy.Field(input_processor = MapCompose(str), output_processor = TakeFirst())
+    url = scrapy.Field(input_processor=Identity(), output_processor = TakeFirst())
