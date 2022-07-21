@@ -1,4 +1,3 @@
-import numpy as np
 import barcodenumber
 import psycopg2
 from dotenv import dotenv_values
@@ -25,35 +24,34 @@ class FragrantPipeline:
 
 
     def process_item(self, item, spider):
-        item.setdefault('brand', [''])
-        item.setdefault('ean', [np.nan])
-        if not barcodenumber.check_code('ean13', item['ean'][0]) or not bool(item['brand'][0]):
-            raise DropItem(f"{item['ean'][0]} doesn't match ean13 standard or brand field is empty")
+        item.setdefault('ean', [''])
+        if not barcodenumber.check_code('ean13', item['ean']):
+            raise DropItem(f"{item['ean']} doesn't match ean13 standard")
         else:
             try:
                 self.cur.execute("INSERT INTO ean13_products (ean13, brand, prod_name) VALUES (%s, %s, %s) ON CONFLICT DO NOTHING",
-                                 (item['ean'][0], item['brand'][0], item['name_var'][0]))
+                                 (item['ean'], item['brand'], item['name_var']))
                 self.conn.commit()
                 match spider.name:
                     case 'fragrant':    
                         self.cur.execute("INSERT INTO prices_ean13 (product_id, price_eu, product_url, seller_id) VALUES (%s, %s, %s, %s)",
-                        (item['ean'][0], item['price_eu'][0], item['url'][0], 1))
+                        (item['ean'], item['price_eu'], item['url'], 1))
                         self.conn.commit()
                     case 'isabella':    
                         self.cur.execute("INSERT INTO prices_ean13 (product_id, price_eu, product_url, seller_id) VALUES (%s, %s, %s, %s)",
-                        (item['ean'][0], item['price_eu'][0], item['url'][0], 2))
+                        (item['ean'], item['price_eu'], item['url'], 2))
                         self.conn.commit()
                     case 'ares':    
                         self.cur.execute("INSERT INTO prices_ean13 (product_id, price_eu, product_url, seller_id) VALUES (%s, %s, %s, %s)",
-                        (item['ean'][0], item['price_eu'][0], item['url'][0], 3))
+                        (item['ean'], item['price_eu'], item['url'], 3))
                         self.conn.commit()
                     case 'julius':    
                         self.cur.execute("INSERT INTO prices_ean13 (product_id, price_eu, product_url, seller_id) VALUES (%s, %s, %s, %s)",
-                        (item['ean'][0], item['price_eu'][0], item['url'][0], 4))
+                        (item['ean'], item['price_eu'], item['url'], 4))
                         self.conn.commit()
                     case 'dan':    
                         self.cur.execute("INSERT INTO prices_ean13 (product_id, price_eu, product_url, seller_id) VALUES (%s, %s, %s, %s)",
-                        (item['ean'][0], item['price_eu'][0], item['url'][0], 5))
+                        (item['ean'], item['price_eu'], item['url'], 5))
                         self.conn.commit()
                     case other:
                         spider.logger.info('No seller match found')
