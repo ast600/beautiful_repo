@@ -76,13 +76,13 @@ class JuliusSpider(CrawlSpider):
 
     def scroll_page(self, response):
         yield SplashRequest(response.url, endpoint='execute', callback=self.splash_item,
-                            args={'lua_source': self.lua_scroll, 'timeout': 800, 'session_id': 'gnu'}, splash_headers={'Authorization': basic_auth_header('admin', 'admin')})
+                            args={'lua_source': self.lua_scroll, 'timeout': 800, 'session_id': 'gnu'})
 
     def splash_item(self, response):
         if response.data['items'] >= len(self.le_item.extract_links(response)):
             for link in self.le_item.extract_links(response):
                 yield SplashRequest(link.url, endpoint='execute', callback=self.parse_item, args={'lua_source': self.lua_item,
-                                                                                                  'timeout': 800, 'session_id': 'gnu'}, splash_headers={'Authorization': basic_auth_header('admin', 'admin')})
+                                                                                                  'timeout': 800, 'session_id': 'gnu'})
         else:
             raise CloseSpider(reason=f"Only {len(self.le_item.extract_links(response))} out of {response.data['items']} were selected")
 
