@@ -12,7 +12,7 @@ def clean_tags(string):
 
 def normalize_string(string):
     if len(string) > 0:
-        norm_string = unidecode.unidecode(string).title().encode('utf8')
+        norm_string = unidecode.unidecode(string).title()
         return norm_string
     else:
         raise DropItem('Empty strings are not allowed!')
