@@ -1,5 +1,4 @@
 import requests
-from w3lib.http import basic_auth_header
 from scrapy.linkextractors import LinkExtractor
 from scrapy.spiders import CrawlSpider, Rule
 from scrapy.exceptions import CloseSpider
