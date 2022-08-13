@@ -21,8 +21,6 @@ def normalize_string(string):
 class PerfumeItem(scrapy.Item):
     brand = scrapy.Field(input_processor = MapCompose(normalize_string), output_processor = TakeFirst())
     name_var = scrapy.Field(input_processor = MapCompose(clean_tags, normalize_string), output_processor = TakeFirst())
-    lilial = scrapy.Field(input_processor=Identity(), output_processor = TakeFirst())
-    spf = scrapy.Field(input_processor=Identity(), output_processor = TakeFirst())
     price_eu = scrapy.Field(input_processor = MapCompose(float), output_processor = TakeFirst())
     ean = scrapy.Field(input_processor = MapCompose(str), output_processor = TakeFirst())
     url = scrapy.Field(input_processor=Identity(), output_processor = TakeFirst())

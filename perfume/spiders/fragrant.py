@@ -9,8 +9,8 @@ from perfume.items import PerfumeItem
 
 class FragrantSpider(CrawlSpider):
     name = 'fragrant'
-    allowed_domains = ['perfumesclub.com', 'perfumesclub.pt']
-    start_urls = ['https://www.perfumesclub.com', 'https://www.perfumesclub.pt']
+    allowed_domains = ['perfumesclub.pt']
+    start_urls = ['https://www.perfumesclub.pt']
     le_item = LinkExtractor(restrict_xpaths=
                             '//div[@id="ajaxPage"]/div/div[@class="pInfo"]/div[@class="contpInfo"]/a[2]')
     lua_scroll = '''
@@ -37,12 +37,7 @@ class FragrantSpider(CrawlSpider):
         splash.images_enabled=false
         splash:go(args.url)
         splash:wait(3)
-        local itemArr=splash:evaljs([[function checkLilial() {let resVar;
-            let textVar = document.querySelectorAll('div.description[itemprop="characteristics"]')[0].innerText;
-            let regexIng = /ingredientes/i; let regexLil = /Lilial|butylphenyl methylpropional/i;
-            regexIng.test(textVar)==true ? resVar=regexLil.test(textVar) : resVar="N/A"; return resVar;}
-        let lilValue= document.querySelectorAll('div.description[itemprop="characteristics"]')>0 ? checkLilial() : "N/A";
-
+        local itemArr=splash:evaljs([[
             function getEan() {if ($("dt:contains('EAN')").length>0) {let prodLen=Object.keys(productList).length;
                 let cleanArr=$("dt:contains('EAN')")[0].nextElementSibling.childNodes[0].data.trim().replace(/\s/g, '').replace('/...','').split('/');
                     if (cleanArr.length==prodLen) {return cleanArr;}
@@ -50,9 +45,8 @@ class FragrantSpider(CrawlSpider):
                 else {let newArr=[]; while (newArr.length<Object.keys(productList).length) {newArr.push('Not found')}; return newArr;}}
         let eanArr=getEan();
         let ind=0;
-        let copyAsArr=productList; let spfRegex=/spf/i;
-        for (let key of Object.keys(copyAsArr)) {copyAsArr[key]['url']=window.location.href; copyAsArr[key]['lilial']=lilValue;
-            copyAsArr[key]['spf']=spfRegex.test(copyAsArr[key].name) || $("dt:contains('SPF')").length>0;
+        let copyAsArr=productList;
+        for (let key of Object.keys(copyAsArr)) {copyAsArr[key]['url']=window.location.href;
             copyAsArr[key]['ean']=eanArr[ind]; ind++};
         copyAsArr;]])
         return itemArr
@@ -62,7 +56,7 @@ class FragrantSpider(CrawlSpider):
     le_start = LinkExtractor(restrict_xpaths=
                              '//div[@class="new-menu-level-2 col-12 toolbarBelleza"]//div[@class="mainLink"]/a')
 
-    rule_start = Rule(le_start, callback='splash_scroll', follow=False)
+    rule_start = Rule(le_start, callback='splash_parse', follow=False)
 
     rules = (rule_start,)
 
@@ -90,8 +84,6 @@ class FragrantSpider(CrawlSpider):
                 loader.add_value('ean', response.data[key]['ean'] + '[!]')
             else:
                 loader.add_value('ean', response.data[key]['ean'])
-            loader.add_value('spf', response.data[key]['spf'])
-            loader.add_value('lilial', response.data[key]['lilial'])
             loader.add_value('price_eu', response.data[key]['price'])
             loader.add_value('url', response.data[key]['url'])
             yield loader.load_item()

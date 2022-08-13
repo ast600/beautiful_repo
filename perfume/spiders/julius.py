@@ -50,14 +50,10 @@ class JuliusSpider(CrawlSpider):
         splash:go(args.url)
         splash:wait(5)
         local itemArr=splash:evaljs([[try {
-            let lilialVar;
-            document.querySelectorAll('div#collapse-product-ingredients > div > p').length > 0 ? lilialVar=/lilial|butylphenyl methylpropional/i.test(document.querySelectorAll('div#collapse-product-ingredients > div > p')[0].innerText) : lilialVar='N/A';
-            let spfVar;
-            document.querySelectorAll('div#collapse-product-ingredients > div > p').length > 0 ? spfVar=/spf/i.test(document.querySelectorAll('div#collapse-product-ingredients > div > p')[0].innerText) || /spf/i.test(document.querySelector('h1').innerText) : spfVar=/spf/i.test(document.querySelector('h1').innerText);
             let jsonArr=Array.from(document.querySelectorAll('script[type="application/ld+json"]')).map(elem => JSON.parse(elem.innerText.replace(/\\n/gi, ''))).filter(elem => elem['@type']=='Product')[0];
             let matchAsArr={sku: jsonArr.sku, ean: jsonArr.gtin13}
             let strArr=idsProducts.map(elem => elem.toString());
-            let resArr={keyArray: matchAsArr, prodArray: strArr, partnerId: rrPartnerId, spf: spfVar, lilial: lilialVar};
+            let resArr={keyArray: matchAsArr, prodArray: strArr, partnerId: rrPartnerId};
             resArr;
             }
         catch(err) {
@@ -97,8 +93,6 @@ class JuliusSpider(CrawlSpider):
                 loader.add_value('brand', prod_dict['brand'])
                 loader.add_value('name_var', prod_dict['name_var'])
                 loader.add_value('ean', prod_dict['ean'])
-                loader.add_value('spf', response.data['spf'])
-                loader.add_value('lilial', response.data['lilial'])
                 loader.add_value('price_eu', prod_dict['price_eu'])
                 loader.add_value('url', prod_dict['url'])
                 yield loader.load_item()

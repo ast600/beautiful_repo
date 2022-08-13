@@ -12,7 +12,7 @@ class IsabellaSpider(CrawlSpider):
     function main(splash, args)
         splash.images_enabled=false
         assert(splash:go(args.url))
-        assert(splash:wait(0.5))
+        assert(splash:wait(10))
         local itemArr = splash:evaljs(string.format([[var result;
             jQuery.ajaxSetup({async: false});
             jQuery.getJSON("%s", (data)=>{result=data;});
@@ -23,14 +23,13 @@ class IsabellaSpider(CrawlSpider):
                 copyAsArr[i]['price_eu']=result.products[i].price_amount;
                 copyAsArr[i]['url']=result.products[i].url; jQuery.ajax({async: false, url: result.products[i].url, success:
                 (data)=>{let doc=new DOMParser().parseFromString(data, 'text/html'); let ajaxSel=doc.querySelectorAll("div[class='tab-pane fade']");
-                copyAsArr[i]['lilial']= ajaxSel.length>0 ? ((/lilial/i.test(result.products[i].name) && !/free/i.test(result.products[i].name)) || /lilial|butylphenyl methylpropional/i.test(JSON.parse(doc.querySelector("div[class='tab-pane fade']").getAttribute('data-product')).description)) : (/lilial free/i.test(result.products[i].name) ? false : "N/A");
-                copyAsArr[i]['spf']=/spf/i.test(result.products[i].name) || (doc.querySelectorAll("div[class='tab-pane fade']").length>0 ? /spf/i.test(JSON.parse(doc.querySelector("div[class='tab-pane fade']").getAttribute('data-product')).description) : false);
                 copyAsArr[i]['ean']=doc.querySelectorAll("span[itemprop='gtin']")[0].innerText!='' ? doc.querySelectorAll("span[itemprop='gtin']")[0].innerText : "Not found";}})}
             let fullArr={pagination: result.pagination, productData: copyAsArr};
         fullArr;]], args.url))
         return
             itemArr
-        end"""
+    end
+    """
     
     le_cat = LinkExtractor(restrict_css='div.buttonnew > a')
 
@@ -54,11 +53,10 @@ class IsabellaSpider(CrawlSpider):
             loader.add_value('brand', product_arr[i]['brand'])
             loader.add_value('name_var', product_arr[i]['name_var'])
             loader.add_value('ean', product_arr[i]['ean'])
-            loader.add_value('spf', product_arr[i]['spf'])
-            loader.add_value('lilial', product_arr[i]['lilial'])
             loader.add_value('price_eu', product_arr[i]['price_eu'])
             loader.add_value('url', product_arr[i]['url'])
             yield loader.load_item()
+        
         if pagination_dict['current_page'] < pagination_dict['pages_count']:
             if isinstance(pagination_dict['pages'], dict):
                 keys_list = list(pagination_dict['pages'].keys())

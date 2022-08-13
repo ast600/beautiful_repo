@@ -19,8 +19,7 @@ class AresSpider(CrawlSpider):
         splash.images_enabled=false
         assert(splash:go(args.url))
         assert(splash:wait(5))
-        local itemArr = splash:evaljs([[let spfVar=document.querySelectorAll('div#tab-1').length>0 ? (/spf/i.test(document.querySelectorAll('div#tab-1')[0].innerText) || /spf/i.test(productObj.name)) : (/spf/i.test(productObj.name)==false ? "N/A" : true);
-            let lilVar=document.querySelectorAll('div#tab-1').length>0 ? /lilial|butylphenyl methylpropional/i.test(document.querySelectorAll('div#tab-1')[0].innerText) : "N/A";
+        local itemArr = splash:evaljs([[
             let rocketArr=[];
             if (document.querySelectorAll('div.contenedor-variedad').length>0)
                 {for (let i=0; i<document.querySelectorAll('div.contenedor-variedad').length; i++)
@@ -30,7 +29,7 @@ class AresSpider(CrawlSpider):
                 {for (let j=0; j<document.querySelectorAll('button[class="c-addtocartaction__button js-add-to-cart"]').length; j++)
                     {var string=document.querySelectorAll('button[class="c-addtocartaction__button js-add-to-cart"]')[j].attributes.onmousedown.value;
                     var regex=/[0-9]+/g; var matchArr=string.match(regex); rocketArr.push(...matchArr);}};
-            let dict={"spf": spfVar, "lilial": lilVar, "partnerId": rrPartnerId, "codeArr": rocketArr}; dict;]])
+            let dict={"partnerId": rrPartnerId, "codeArr": rocketArr}; dict;]])
     return
         itemArr
     end
@@ -64,8 +63,6 @@ class AresSpider(CrawlSpider):
                 else:
                     loader.add_value('name_var', r_json[i]['Name'])
                 loader.add_value('ean', r_json[i]['ItemId'])
-                loader.add_value('spf', response.data['spf'])
-                loader.add_value('lilial', response.data['lilial'])
                 loader.add_value('price_eu', r_json[i]['Price'])
                 loader.add_value('url', r_json[i]['Url'])
                 yield loader.load_item()
