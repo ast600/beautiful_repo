@@ -37,6 +37,10 @@ class FragrantPipeline:
                         self.cur.execute("INSERT INTO prices_ean13 (product_id, price_eu, product_url, seller_id) VALUES (%s, %s, %s, %s)",
                         (item['ean'], item['price_eu'], item['url'], 1))
                         self.conn.commit()
+                    case 'com_fragrant':
+                        self.cur.execute("INSERT INTO prices_ean13 (product_id, price_eu, product_url, seller_id) VALUES (%s, %s, %s, %s)",
+                        (item['ean'], item['price_eu'], item['url'], 1))
+                        self.conn.commit()
                     case 'isabella':    
                         self.cur.execute("INSERT INTO prices_ean13 (product_id, price_eu, product_url, seller_id) VALUES (%s, %s, %s, %s)",
                         (item['ean'], item['price_eu'], item['url'], 2))
