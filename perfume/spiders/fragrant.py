@@ -1,9 +1,16 @@
+from twisted.internet import reactor, defer
+from scrapy.crawler import CrawlerRunner
+from scrapy.utils.log import configure_logging
+from scrapy.utils.project import get_project_settings
 from scrapy.exceptions import CloseSpider
 from scrapy.linkextractors import LinkExtractor
 from scrapy.spiders import CrawlSpider, Rule
 from scrapy.loader import ItemLoader
 from scrapy_splash import SplashRequest
-from itemloaders.processors import TakeFirst
+import repackage
+
+repackage.up(2)
+
 from perfume.items import PerfumeItem
 
 
@@ -87,3 +94,23 @@ class FragrantSpider(CrawlSpider):
             loader.add_value('price_eu', response.data[key]['price'])
             loader.add_value('url', response.data[key]['url'])
             yield loader.load_item()
+
+
+class ComFragrantSpider(FragrantSpider):
+    name = 'com_fragrant'
+    allowed_domains = ['perfumesclub.com']
+    start_urls = ['https://www.perfumesclub.com']
+
+
+configure_logging()
+settings = get_project_settings()
+runner = CrawlerRunner(settings)
+
+@defer.inlineCallbacks
+def crawl():
+    yield runner.crawl(FragrantSpider)
+    yield runner.crawl(ComFragrantSpider)
+    reactor.stop()
+
+crawl()
+reactor.run()
