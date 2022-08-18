@@ -101,16 +101,16 @@ class ComFragrantSpider(FragrantSpider):
     allowed_domains = ['perfumesclub.com']
     start_urls = ['https://www.perfumesclub.com']
 
+if __name__ == '__main__':
+    configure_logging()
+    settings = get_project_settings()
+    runner = CrawlerRunner(settings)
 
-configure_logging()
-settings = get_project_settings()
-runner = CrawlerRunner(settings)
+    @defer.inlineCallbacks
+    def crawl():
+        yield runner.crawl(FragrantSpider)
+        yield runner.crawl(ComFragrantSpider)
+        reactor.stop()
 
-@defer.inlineCallbacks
-def crawl():
-    yield runner.crawl(FragrantSpider)
-    yield runner.crawl(ComFragrantSpider)
-    reactor.stop()
-
-crawl()
-reactor.run()
+    crawl()
+    reactor.run()
