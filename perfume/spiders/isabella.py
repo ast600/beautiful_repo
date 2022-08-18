@@ -11,8 +11,9 @@ class IsabellaSpider(CrawlSpider):
     lua_script = """
     function main(splash, args)
         splash.images_enabled=false
+        assert(splash:autoload("https://code.jquery.com/jquery-2.1.3.min.js"))
         assert(splash:go(args.url))
-        assert(splash:wait(10))
+        assert(splash:wait(3))
         local itemArr = splash:evaljs(string.format([[var result;
             jQuery.ajaxSetup({async: false});
             jQuery.getJSON("%s", (data)=>{result=data;});

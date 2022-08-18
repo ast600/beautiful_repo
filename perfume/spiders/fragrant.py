@@ -1,4 +1,3 @@
-from twisted.internet import reactor, defer
 from scrapy.crawler import CrawlerRunner
 from scrapy.utils.log import configure_logging
 from scrapy.utils.project import get_project_settings
@@ -35,7 +34,7 @@ class FragrantSpider(CrawlSpider):
   		local items=splash:evaljs("filter.GetModel().totalItems;")
   		local pages = math.ceil(total/perPage)
         splash:runjs(string.format("window.location.search=\'pagina=%d\';", pages))
-        splash:wait(160)
+        splash:wait(180)
     return {items=items, html=splash:html()}
     end
     '''
@@ -102,6 +101,9 @@ class ComFragrantSpider(FragrantSpider):
     start_urls = ['https://www.perfumesclub.com']
 
 if __name__ == '__main__':
+
+    from twisted.internet import reactor, defer
+
     configure_logging()
     settings = get_project_settings()
     runner = CrawlerRunner(settings)
